@@ -1,7 +1,9 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
+import { toast } from 'react-toastify'
 import * as yup from 'yup'
+import { useAuth } from '../contexts/AuthContext'
 
 type CadastroFormData = {
   nome: string
@@ -45,6 +47,7 @@ const cadastroSchema = yup.object({
 
 function Cadastro() {
   const navigate = useNavigate()
+  const { login } = useAuth()
 
   const {
     register,
@@ -55,10 +58,21 @@ function Cadastro() {
   })
 
   function cadastrar(dados: CadastroFormData) {
-    console.log('Dados do cadastro:', dados)
+    const novoUsuario = {
+      nome: dados.nome,
+      email: dados.email,
+    }
 
-    alert('Cadastro realizado com sucesso!')
-    navigate('/login')
+    login(novoUsuario)
+
+    console.log('JSON do cadastro:', JSON.stringify(dados, null, 2))
+    console.log('Usuário logado após cadastro:', JSON.stringify(novoUsuario, null, 2))
+
+    toast.success('Cadastro realizado com sucesso!')
+
+    setTimeout(() => {
+      navigate('/dashboard')
+    }, 1200)
   }
 
   const possuiErros = Object.keys(errors).length > 0

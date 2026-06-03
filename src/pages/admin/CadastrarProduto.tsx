@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import type { ChangeEvent } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { useNavigate, useParams } from 'react-router-dom'
@@ -6,6 +7,7 @@ import { toast } from 'react-toastify'
 import ReactQuill from 'react-quill-new'
 import 'react-quill-new/dist/quill.snow.css'
 import * as yup from 'yup'
+import { useAuth } from '../../contexts/AuthContext'
 
 type ProdutoFormData = {
   nome: string
@@ -15,6 +17,11 @@ type ProdutoFormData = {
   imagemPrincipal: string
   imagemSecundaria: string
   descricao: string
+}
+
+type ProdutoCadastrado = ProdutoFormData & {
+  id: number
+  usuarioEmail: string
 }
 
 const produtoSchema = yup.object({
@@ -28,11 +35,11 @@ const produtoSchema = yup.object({
 
   imagemPrincipal: yup
     .string()
-    .required('A URL da imagem principal é obrigatória'),
+    .required('A imagem principal é obrigatória'),
 
   imagemSecundaria: yup
     .string()
-    .required('A URL da imagem secundária é obrigatória'),
+    .required('A imagem secundária é obrigatória'),
 
   descricao: yup
     .string()
@@ -40,64 +47,24 @@ const produtoSchema = yup.object({
     .min(10, 'A descrição deve ter pelo menos 10 caracteres'),
 })
 
-const anunciosMockados = [
-  {
-    id: 1,
-    nome: 'Echo Dot',
-    fabricante: 'Amazon',
-    categoria: 'Eletrônicos',
-    preco: '700,99',
-    imagemPrincipal: '/echo-dot.jpg',
-    imagemSecundaria: '/echo-dot.jpg',
-    descricao:
-      '<p>Echo Dot de 8ª geração com assistente virtual Alexa, ideal para ouvir músicas, controlar dispositivos inteligentes e facilitar tarefas do dia a dia.</p>',
-  },
-  {
-    id: 2,
-    nome: 'Echo Dot',
-    fabricante: 'Amazon',
-    categoria: 'Eletrônicos',
-    preco: '700,99',
-    imagemPrincipal: '/echo-dot.jpg',
-    imagemSecundaria: '/echo-dot.jpg',
-    descricao:
-      '<p>Produto compacto, moderno e funcional, indicado para ambientes como sala, quarto ou escritório.</p>',
-  },
-  {
-    id: 3,
-    nome: 'Echo Dot',
-    fabricante: 'Amazon',
-    categoria: 'Eletrônicos',
-    preco: '700,99',
-    imagemPrincipal: '/echo-dot.jpg',
-    imagemSecundaria: '/echo-dot.jpg',
-    descricao:
-      '<p>Caixa de som inteligente com boa qualidade sonora e integração com comandos de voz.</p>',
-  },
-  {
-    id: 4,
-    nome: 'Echo Dot',
-    fabricante: 'Amazon',
-    categoria: 'Eletrônicos',
-    preco: '700,99',
-    imagemPrincipal: '/echo-dot.jpg',
-    imagemSecundaria: '/echo-dot.jpg',
-    descricao:
-      '<p>Produto anunciado na plataforma UnyBay, com foco em praticidade, tecnologia e conectividade.</p>',
-  },
-]
-
 function CadastrarProduto() {
   const navigate = useNavigate()
   const { id } = useParams()
+  const { usuario } = useAuth()
 
   const estaEditando = Boolean(id)
+
+  const chaveProdutos = usuario
+    ? `@unybay:produtos:${usuario.email}`
+    : '@unybay:produtos:sem-usuario'
 
   const {
     register,
     handleSubmit,
     control,
     reset,
+    setValue,
+    watch,
     formState: { errors, isSubmitted },
   } = useForm<ProdutoFormData>({
     resolver: yupResolver(produtoSchema),
@@ -112,38 +79,225 @@ function CadastrarProduto() {
     },
   })
 
+  const imagemPrincipalPreview = watch('imagemPrincipal')
+  const imagemSecundariaPreview = watch('imagemSecundaria')
+
   useEffect(() => {
+    if (!usuario) {
+      toast.error('Você precisa estar logado para acessar esta página.')
+      navigate('/login')
+      return
+    }
+
     if (estaEditando && id) {
-      const anuncioEncontrado = anunciosMockados.find(
-        (anuncio) => anuncio.id === Number(id),
+      const produtosSalvos = localStorage.getItem(chaveProdutos)
+      const produtos: ProdutoCadastrado[] = produtosSalvos
+        ? JSON.parse(produtosSalvos)
+        : []
+
+      const produtoEncontrado = produtos.find(
+        (produto) => produto.id === Number(id),
       )
 
-      if (anuncioEncontrado) {
+      if (produtoEncontrado) {
         reset({
-          nome: anuncioEncontrado.nome,
-          fabricante: anuncioEncontrado.fabricante,
-          categoria: anuncioEncontrado.categoria,
-          preco: anuncioEncontrado.preco,
-          imagemPrincipal: anuncioEncontrado.imagemPrincipal,
-          imagemSecundaria: anuncioEncontrado.imagemSecundaria,
-          descricao: anuncioEncontrado.descricao,
+          nome: produtoEncontrado.nome,
+          fabricante: produtoEncontrado.fabricante,
+          categoria: produtoEncontrado.categoria,
+          preco: produtoEncontrado.preco,
+          imagemPrincipal: produtoEncontrado.imagemPrincipal,
+          imagemSecundaria: produtoEncontrado.imagemSecundaria,
+          descricao: produtoEncontrado.descricao,
         })
       }
     }
-  }, [estaEditando, id, reset])
+  }, [usuario, estaEditando, id, reset, navigate, chaveProdutos])
 
-  function salvarProduto(dados: ProdutoFormData) {
-    console.log('Dados do produto:', dados)
+  function buscarProdutosDoUsuario() {
+    const produtosSalvos = localStorage.getItem(chaveProdutos)
 
-    if (estaEditando) {
-      toast.success('Anúncio atualizado com sucesso!')
-    } else {
-      toast.success('Produto cadastrado com sucesso!')
+    if (!produtosSalvos) {
+      return []
     }
 
-    setTimeout(() => {
-      navigate('/dashboard/anuncios')
-    }, 1200)
+    return JSON.parse(produtosSalvos) as ProdutoCadastrado[]
+  }
+
+  function salvarProdutosDoUsuario(produtos: ProdutoCadastrado[]) {
+    try {
+      localStorage.setItem(chaveProdutos, JSON.stringify(produtos))
+    } catch (error) {
+      console.error('Erro ao salvar produtos no localStorage:', error)
+
+      toast.error(
+        'Não foi possível salvar o anúncio. Tente usar imagens menores.',
+      )
+
+      throw error
+    }
+  }
+
+  function converterImagemParaBase64(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+
+      reader.onload = () => {
+        const img = new Image()
+
+        img.onload = () => {
+          const canvas = document.createElement('canvas')
+          const maxWidth = 600
+          const maxHeight = 600
+
+          let width = img.width
+          let height = img.height
+
+          if (width > height) {
+            if (width > maxWidth) {
+              height = Math.round((height * maxWidth) / width)
+              width = maxWidth
+            }
+          } else if (height > maxHeight) {
+            width = Math.round((width * maxHeight) / height)
+            height = maxHeight
+          }
+
+          canvas.width = width
+          canvas.height = height
+
+          const ctx = canvas.getContext('2d')
+
+          if (!ctx) {
+            reject(new Error('Erro ao processar imagem'))
+            return
+          }
+
+          ctx.drawImage(img, 0, 0, width, height)
+
+          const imagemComprimida = canvas.toDataURL('image/jpeg', 0.7)
+
+          resolve(imagemComprimida)
+        }
+
+        img.onerror = () => {
+          reject(new Error('Erro ao carregar imagem'))
+        }
+
+        img.src = reader.result as string
+      }
+
+      reader.onerror = () => {
+        reject(new Error('Erro ao ler arquivo'))
+      }
+
+      reader.readAsDataURL(file)
+    })
+  }
+
+  async function selecionarImagemPrincipal(
+    event: ChangeEvent<HTMLInputElement>,
+  ) {
+    const file = event.target.files?.[0]
+
+    if (!file) {
+      return
+    }
+
+    try {
+      const imagemBase64 = await converterImagemParaBase64(file)
+
+      setValue('imagemPrincipal', imagemBase64, {
+        shouldValidate: true,
+      })
+    } catch (error) {
+      console.error('Erro ao selecionar imagem principal:', error)
+      toast.error('Erro ao carregar imagem principal.')
+    }
+  }
+
+  async function selecionarImagemSecundaria(
+    event: ChangeEvent<HTMLInputElement>,
+  ) {
+    const file = event.target.files?.[0]
+
+    if (!file) {
+      return
+    }
+
+    try {
+      const imagemBase64 = await converterImagemParaBase64(file)
+
+      setValue('imagemSecundaria', imagemBase64, {
+        shouldValidate: true,
+      })
+    } catch (error) {
+      console.error('Erro ao selecionar imagem secundária:', error)
+      toast.error('Erro ao carregar imagem secundária.')
+    }
+  }
+
+  function salvarProduto(dados: ProdutoFormData) {
+    if (!usuario) {
+      toast.error('Você precisa estar logado para cadastrar um produto.')
+      return
+    }
+
+    try {
+      const produtosAtuais = buscarProdutosDoUsuario()
+
+      if (estaEditando && id) {
+        const produtosAtualizados = produtosAtuais.map((produto) => {
+          if (produto.id === Number(id)) {
+            return {
+              ...produto,
+              ...dados,
+            }
+          }
+
+          return produto
+        })
+
+        salvarProdutosDoUsuario(produtosAtualizados)
+
+        console.log(
+          'JSON do produto editado:',
+          JSON.stringify(
+            {
+              id: Number(id),
+              usuarioEmail: usuario.email,
+              ...dados,
+            },
+            null,
+            2,
+          ),
+        )
+
+        toast.success('Anúncio atualizado com sucesso!')
+      } else {
+        const novoProduto: ProdutoCadastrado = {
+          id: Date.now(),
+          usuarioEmail: usuario.email,
+          ...dados,
+        }
+
+        const produtosAtualizados = [...produtosAtuais, novoProduto]
+
+        salvarProdutosDoUsuario(produtosAtualizados)
+
+        console.log(
+          'JSON do produto cadastrado:',
+          JSON.stringify(novoProduto, null, 2),
+        )
+
+        toast.success('Produto cadastrado com sucesso!')
+      }
+
+      setTimeout(() => {
+        navigate('/dashboard/anuncios')
+      }, 1200)
+    } catch (error) {
+      console.error('Erro ao salvar produto:', error)
+    }
   }
 
   const possuiErros = Object.keys(errors).length > 0
@@ -256,16 +410,30 @@ function CadastrarProduto() {
             </div>
 
             <div>
+              <label className="mb-2 block text-sm font-semibold text-gray-600">
+                Imagem principal
+              </label>
+
               <input
-                type="text"
-                placeholder="URL da imagem"
-                {...register('imagemPrincipal')}
+                type="file"
+                accept="image/*"
+                onChange={selecionarImagemPrincipal}
                 className={`w-full rounded-md border bg-white px-4 py-3 text-sm text-gray-700 shadow-sm outline-none transition focus:ring-2 ${
                   errors.imagemPrincipal
                     ? 'border-red-300 focus:border-red-400 focus:ring-red-100'
                     : 'border-gray-200 focus:border-[#0067A8] focus:ring-blue-100'
                 }`}
               />
+
+              {imagemPrincipalPreview && (
+                <div className="mt-3 flex h-32 items-center justify-center rounded-md bg-white shadow-sm">
+                  <img
+                    src={imagemPrincipalPreview}
+                    alt="Prévia da imagem principal"
+                    className="h-28 w-28 object-contain"
+                  />
+                </div>
+              )}
 
               {errors.imagemPrincipal && (
                 <p className="mt-1 text-xs font-semibold text-red-400">
@@ -275,16 +443,30 @@ function CadastrarProduto() {
             </div>
 
             <div>
+              <label className="mb-2 block text-sm font-semibold text-gray-600">
+                Imagem secundária
+              </label>
+
               <input
-                type="text"
-                placeholder="URL da imagem"
-                {...register('imagemSecundaria')}
+                type="file"
+                accept="image/*"
+                onChange={selecionarImagemSecundaria}
                 className={`w-full rounded-md border bg-white px-4 py-3 text-sm text-gray-700 shadow-sm outline-none transition focus:ring-2 ${
                   errors.imagemSecundaria
                     ? 'border-red-300 focus:border-red-400 focus:ring-red-100'
                     : 'border-gray-200 focus:border-[#0067A8] focus:ring-blue-100'
                 }`}
               />
+
+              {imagemSecundariaPreview && (
+                <div className="mt-3 flex h-32 items-center justify-center rounded-md bg-white shadow-sm">
+                  <img
+                    src={imagemSecundariaPreview}
+                    alt="Prévia da imagem secundária"
+                    className="h-28 w-28 object-contain"
+                  />
+                </div>
+              )}
 
               {errors.imagemSecundaria && (
                 <p className="mt-1 text-xs font-semibold text-red-400">

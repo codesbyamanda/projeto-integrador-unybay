@@ -184,11 +184,11 @@ function Home() {
   }
 
   return (
-    <section className="bg-[#f5f5f5] px-6 py-10">
-      <div className="mx-auto max-w-5xl">
+    <section className="overflow-x-hidden bg-[#f5f5f5] px-4 py-8 sm:px-6 sm:py-10">
+      <div className="mx-auto w-full max-w-5xl">
         {/* Carrossel de banners */}
         <div className="mb-8 overflow-hidden rounded-md shadow-md">
-          <div className="relative h-56">
+          <div className="relative h-48 sm:h-56">
             <img
               src={banners[bannerAtual].imagem}
               alt={banners[bannerAtual].titulo}
@@ -197,27 +197,28 @@ function Home() {
 
             <div className="absolute inset-0 bg-blue-900/20"></div>
 
-            <div className="absolute left-10 top-1/2 -translate-y-1/2 text-white">
-              <h1 className="text-5xl font-extrabold leading-none tracking-wide drop-shadow-md">
+            <div className="absolute left-6 top-1/2 max-w-[55%] -translate-y-1/2 text-white sm:left-10 sm:max-w-none">
+              <h1 className="text-3xl font-extrabold leading-none tracking-wide drop-shadow-md sm:text-5xl">
                 {banners[bannerAtual].titulo}
               </h1>
 
-              <p className="mt-2 text-lg font-bold italic tracking-wide drop-shadow-md">
+              <p className="mt-2 text-sm font-bold italic tracking-wide drop-shadow-md sm:text-lg">
                 {banners[bannerAtual].subtitulo}
               </p>
 
-              <button className="mt-5 rounded-full bg-yellow-400 px-8 py-2 text-xs font-bold text-blue-900 shadow-md transition hover:bg-yellow-300">
+              <button className="mt-4 rounded-full bg-yellow-400 px-6 py-2 text-[10px] font-bold text-blue-900 shadow-md transition hover:bg-yellow-300 sm:mt-5 sm:px-8 sm:text-xs">
                 SHOP NOW
               </button>
             </div>
 
-            <div className="absolute right-10 top-1/2 flex h-24 w-24 -translate-y-1/2 items-center justify-center rounded-full bg-sky-200 shadow-lg">
-              <span className="text-center text-2xl font-extrabold text-[#0067A8]">
+            <div className="absolute right-6 top-1/2 flex h-20 w-20 -translate-y-1/2 items-center justify-center rounded-full bg-sky-200 shadow-lg sm:right-10 sm:h-24 sm:w-24">
+              <span className="text-center text-xl font-extrabold text-[#0067A8] sm:text-2xl">
                 {banners[bannerAtual].desconto}
               </span>
             </div>
 
             <button
+              type="button"
               onClick={bannerAnterior}
               className="absolute left-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 text-[#0067A8] shadow-md transition hover:bg-white"
               aria-label="Banner anterior"
@@ -226,6 +227,7 @@ function Home() {
             </button>
 
             <button
+              type="button"
               onClick={proximoBanner}
               className="absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 text-[#0067A8] shadow-md transition hover:bg-white"
               aria-label="Próximo banner"
@@ -236,6 +238,7 @@ function Home() {
             <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-2">
               {banners.map((banner, index) => (
                 <button
+                  type="button"
                   key={banner.id}
                   onClick={() => setBannerAtual(index)}
                   className={`h-2.5 w-2.5 rounded-full transition ${
@@ -274,13 +277,13 @@ function Home() {
           </h2>
 
           {carregandoRecentes ? (
-            <div className="grid grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {[1, 2, 3, 4].map((item) => (
                 <ProductCardSkeleton key={item} />
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {produtosRecentes.map((produto) => (
                 <ProductCard
                   key={produto.id}
@@ -305,12 +308,12 @@ function Home() {
         </div>
 
         {/* Categorias */}
-        <div className="mb-16 rounded-lg bg-[#0067A8] px-10 py-7 text-white shadow-lg">
+        <div className="mb-16 rounded-lg bg-[#0067A8] px-6 py-7 text-white shadow-lg sm:px-10">
           <h2 className="mb-7 text-xl font-semibold">
             Categorias
           </h2>
 
-          <div className="flex items-center justify-between">
+          <div className="grid grid-cols-2 gap-6 sm:grid-cols-4 lg:grid-cols-7">
             {categorias.map((categoria) => (
               <button
                 type="button"
@@ -328,7 +331,7 @@ function Home() {
                   {categoria.icone}
                 </div>
 
-                <p className="text-xs font-semibold text-white">
+                <p className="text-center text-xs font-semibold text-white">
                   {categoria.nome}
                 </p>
               </button>
@@ -343,13 +346,13 @@ function Home() {
           </h2>
 
           {carregandoRecomendados ? (
-            <div className="grid grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {[1, 2, 3, 4, 5, 6, 7, 8].map((item) => (
                 <ProductCardSkeleton key={item} />
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {produtosRecomendados.map((produto) => (
                 <ProductCard
                   key={produto.id}

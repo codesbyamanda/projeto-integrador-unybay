@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { toast } from 'react-toastify'
 import * as yup from 'yup'
+import { useAuth } from '../contexts/AuthContext'
 
 type LoginFormData = {
   email: string
@@ -23,6 +24,7 @@ const loginSchema = yup.object({
 
 function Login() {
   const navigate = useNavigate()
+  const { login } = useAuth()
 
   const {
     register,
@@ -33,7 +35,14 @@ function Login() {
   })
 
   function entrar(dados: LoginFormData) {
-    console.log('Dados do login:', dados)
+    const usuarioLogado = {
+      email: dados.email,
+    }
+
+    login(usuarioLogado)
+
+    console.log('JSON do login:', JSON.stringify(usuarioLogado, null, 2))
+    console.log('Dados completos do formulário:', JSON.stringify(dados, null, 2))
 
     toast.success('Login realizado com sucesso!')
 

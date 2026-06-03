@@ -14,6 +14,7 @@ import {
 } from 'react-icons/fa'
 import { toast } from 'react-toastify'
 import { api } from '../../services/api'
+import { useAuth } from '../../contexts/AuthContext'
 import ProductCard from '../../components/ProductCard'
 import ProductCardSkeleton from '../../components/ProductCardSkeleton'
 
@@ -31,11 +32,16 @@ type Categoria = {
   apiCategoria: string
 }
 
-type AnuncioLocal = {
+type ProdutoCadastrado = {
   id: number
+  usuarioEmail: string
   nome: string
+  fabricante: string
+  categoria: string
   preco: string
-  imagem: string
+  imagemPrincipal: string
+  imagemSecundaria: string
+  descricao: string
 }
 
 function Dashboard() {
@@ -45,6 +51,9 @@ function Dashboard() {
   const [produtosRecomendados, setProdutosRecomendados] = useState<
     ProdutoApi[]
   >([])
+  const [anunciosUsuario, setAnunciosUsuario] = useState<ProdutoCadastrado[]>(
+    [],
+  )
   const [carregandoRecentes, setCarregandoRecentes] = useState(true)
   const [carregandoRecomendados, setCarregandoRecomendados] = useState(true)
   const [tituloRecomendados, setTituloRecomendados] = useState(
@@ -53,6 +62,11 @@ function Dashboard() {
   const [categoriaSelecionada, setCategoriaSelecionada] = useState('')
 
   const navigate = useNavigate()
+  const { usuario } = useAuth()
+
+  const chaveProdutos = usuario
+    ? `@unybay:produtos:${usuario.email}`
+    : '@unybay:produtos:sem-usuario'
 
   const banners = [
     {
@@ -116,13 +130,6 @@ function Dashboard() {
     },
   ]
 
-  const anuncios: AnuncioLocal[] = [
-    { id: 1, nome: 'Echo Dot', preco: 'R$ 700,99', imagem: '/echo-dot.jpg' },
-    { id: 2, nome: 'Echo Dot', preco: 'R$ 700,99', imagem: '/echo-dot.jpg' },
-    { id: 3, nome: 'Echo Dot', preco: 'R$ 700,99', imagem: '/echo-dot.jpg' },
-    { id: 4, nome: 'Echo Dot', preco: 'R$ 700,99', imagem: '/echo-dot.jpg' },
-  ]
-
   useEffect(() => {
     async function buscarProdutosRecentes() {
       try {
@@ -157,6 +164,22 @@ function Dashboard() {
     buscarProdutosRecentes()
     buscarProdutosRecomendados()
   }, [])
+
+  useEffect(() => {
+    if (!usuario) {
+      setAnunciosUsuario([])
+      return
+    }
+
+    const produtosSalvos = localStorage.getItem(chaveProdutos)
+
+    if (produtosSalvos) {
+      const produtos: ProdutoCadastrado[] = JSON.parse(produtosSalvos)
+      setAnunciosUsuario(produtos)
+    } else {
+      setAnunciosUsuario([])
+    }
+  }, [usuario, chaveProdutos])
 
   async function buscarProdutosPorCategoria(categoria: Categoria) {
     try {
@@ -205,10 +228,10 @@ function Dashboard() {
 
   return (
     <section className="bg-[#f5f5f5] px-6 py-12">
-      <div className="mx-auto max-w-5xl">
+      <div className="mx-auto w-full max-w-5xl">
         {/* Carrossel de banners */}
         <div className="mb-8 overflow-hidden rounded-md shadow-md">
-          <div className="relative h-56">
+          <div className="relative h-48 sm:h-56">
             <img
               src={banners[bannerAtual].imagem}
               alt={banners[bannerAtual].titulo}
@@ -218,7 +241,7 @@ function Dashboard() {
             <div className="absolute inset-0 bg-blue-900/20"></div>
 
             <div className="absolute left-10 top-1/2 -translate-y-1/2 text-white">
-              <h1 className="text-5xl font-extrabold leading-none tracking-wide drop-shadow-md">
+              <h1 className="text-3xl sm:text-5xl font-extrabold leading-none tracking-wide drop-shadow-md">
                 {banners[bannerAtual].titulo}
               </h1>
 
@@ -231,8 +254,8 @@ function Dashboard() {
               </button>
             </div>
 
-            <div className="absolute right-10 top-1/2 flex h-24 w-24 -translate-y-1/2 items-center justify-center rounded-full bg-sky-200 shadow-lg">
-              <span className="text-center text-2xl font-extrabold text-[#0067A8]">
+            <div className="absolute right-6 top-1/2 flex h-20 w-20 -translate-y-1/2 items-center justify-center rounded-full bg-sky-200 shadow-lg sm:right-10 sm:h-24 sm:w-24">
+              <span className="text-center text-xl font-extrabold text-[#0067A8] sm:text-2xl">
                 {banners[bannerAtual].desconto}
               </span>
             </div>
@@ -297,13 +320,13 @@ function Dashboard() {
           </h2>
 
           {carregandoRecentes ? (
-            <div className="grid grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {[1, 2, 3, 4].map((item) => (
                 <ProductCardSkeleton key={item} />
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {produtosRecentes.map((produto) => (
                 <ProductCard
                   key={produto.id}
@@ -334,7 +357,7 @@ function Dashboard() {
             Categorias
           </h2>
 
-          <div className="flex items-center justify-between">
+          <div className="grid grid-cols-2 gap-6 sm:grid-cols-4 lg:grid-cols-7">
             {categorias.map((categoria) => (
               <button
                 type="button"
@@ -367,13 +390,13 @@ function Dashboard() {
           </h2>
 
           {carregandoRecomendados ? (
-            <div className="grid grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {[1, 2, 3, 4, 5, 6, 7, 8].map((item) => (
                 <ProductCardSkeleton key={item} />
               ))}
             </div>
           ) : produtosRecomendados.length > 0 ? (
-            <div className="grid grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {produtosRecomendados.map((produto) => (
                 <ProductCard
                   key={produto.id}
@@ -408,50 +431,71 @@ function Dashboard() {
           </div>
         </div>
 
-        {/* Anúncios */}
+        {/* Anúncios do usuário */}
         <div>
           <h2 className="mb-8 text-2xl font-semibold text-gray-700">
-            Anúncios
+            Meus Anúncios
           </h2>
 
-          <div className="grid grid-cols-4 gap-6">
-            {anuncios.map((anuncio) => (
+          {anunciosUsuario.length === 0 ? (
+            <div className="rounded-lg bg-white p-10 text-center shadow-md">
+              <h3 className="text-xl font-semibold text-gray-700">
+                Nenhum anúncio cadastrado
+              </h3>
+
+              <p className="mt-2 text-sm text-gray-500">
+                Você ainda não cadastrou nenhum produto neste perfil.
+              </p>
+
               <Link
-                to={`/dashboard/produtos/${anuncio.id}`}
-                key={anuncio.id}
-                className="bg-white p-4 shadow-md transition hover:-translate-y-1 hover:shadow-lg"
+                to="/dashboard/anuncios/novo"
+                className="mt-6 inline-block rounded-lg bg-orange-500 px-8 py-3 text-sm font-bold text-white shadow-md transition hover:bg-orange-600"
               >
-                <h3 className="mb-5 text-sm font-bold text-gray-700">
-                  {anuncio.nome} (8ª Geração)
-                </h3>
-
-                <div className="mb-5 flex h-32 items-center justify-center">
-                  <img
-                    src={anuncio.imagem}
-                    alt={anuncio.nome}
-                    className="h-28 w-28 object-contain"
-                  />
-                </div>
-
-                <p className="text-sm text-gray-500">
-                  Amazon
-                </p>
-
-                <p className="text-xl font-semibold text-gray-600">
-                  {anuncio.preco}
-                </p>
+                Cadastrar anúncio
               </Link>
-            ))}
-          </div>
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                {anunciosUsuario.slice(0, 4).map((anuncio) => (
+                  <Link
+                    to={`/dashboard/anuncios/${anuncio.id}`}
+                    key={anuncio.id}
+                    className="bg-white p-4 shadow-md transition hover:-translate-y-1 hover:shadow-lg"
+                  >
+                    <h3 className="mb-5 text-sm font-bold text-gray-700">
+                      {anuncio.nome}
+                    </h3>
 
-          <div className="mt-4 flex justify-end">
-            <Link
-              to="/dashboard/anuncios"
-              className="text-lg font-medium text-gray-700 hover:text-[#0067A8]"
-            >
-              ver todos
-            </Link>
-          </div>
+                    <div className="mb-5 flex h-32 items-center justify-center">
+                      <img
+                        src={anuncio.imagemPrincipal}
+                        alt={anuncio.nome}
+                        className="h-28 w-28 object-contain"
+                      />
+                    </div>
+
+                    <p className="text-sm text-gray-500">
+                      {anuncio.fabricante}
+                    </p>
+
+                    <p className="text-xl font-semibold text-gray-600">
+                      R$ {anuncio.preco}
+                    </p>
+                  </Link>
+                ))}
+              </div>
+
+              <div className="mt-4 flex justify-end">
+                <Link
+                  to="/dashboard/anuncios"
+                  className="text-lg font-medium text-gray-700 hover:text-[#0067A8]"
+                >
+                  ver todos
+                </Link>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </section>

@@ -1,54 +1,56 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { FaEdit, FaTrash, FaTimes } from 'react-icons/fa'
 import { toast } from 'react-toastify'
+import { useAuth } from '../../contexts/AuthContext'
 
-type Anuncio = {
+type ProdutoCadastrado = {
   id: number
+  usuarioEmail: string
   nome: string
+  fabricante: string
+  categoria: string
   preco: string
-  marca: string
-  imagem: string
+  imagemPrincipal: string
+  imagemSecundaria: string
+  descricao: string
 }
 
 function MeusAnuncios() {
-  const [anuncios, setAnuncios] = useState<Anuncio[]>([
-    {
-      id: 1,
-      nome: 'Echo Dot',
-      preco: 'R$ 700,99',
-      marca: 'Amazon',
-      imagem: '/echo-dot.jpg',
-    },
-    {
-      id: 2,
-      nome: 'Echo Dot',
-      preco: 'R$ 700,99',
-      marca: 'Amazon',
-      imagem: '/echo-dot.jpg',
-    },
-    {
-      id: 3,
-      nome: 'Echo Dot',
-      preco: 'R$ 700,99',
-      marca: 'Amazon',
-      imagem: '/echo-dot.jpg',
-    },
-    {
-      id: 4,
-      nome: 'Echo Dot',
-      preco: 'R$ 700,99',
-      marca: 'Amazon',
-      imagem: '/echo-dot.jpg',
-    },
-  ])
+  const navigate = useNavigate()
+  const { usuario } = useAuth()
 
+  const [anuncios, setAnuncios] = useState<ProdutoCadastrado[]>([])
   const [modalAberto, setModalAberto] = useState(false)
-  const [anuncioSelecionado, setAnuncioSelecionado] = useState<Anuncio | null>(
-    null,
-  )
+  const [anuncioSelecionado, setAnuncioSelecionado] =
+    useState<ProdutoCadastrado | null>(null)
 
-  function abrirModalExclusao(anuncio: Anuncio) {
+  const chaveProdutos = usuario
+    ? `@unybay:produtos:${usuario.email}`
+    : '@unybay:produtos:sem-usuario'
+
+  useEffect(() => {
+    if (!usuario) {
+      toast.error('Você precisa estar logado para acessar seus anúncios.')
+
+      setTimeout(() => {
+        navigate('/login')
+      }, 1200)
+
+      return
+    }
+
+    const produtosSalvos = localStorage.getItem(chaveProdutos)
+
+    if (produtosSalvos) {
+      const produtos: ProdutoCadastrado[] = JSON.parse(produtosSalvos)
+      setAnuncios(produtos)
+    } else {
+      setAnuncios([])
+    }
+  }, [usuario, chaveProdutos, navigate])
+
+  function abrirModalExclusao(anuncio: ProdutoCadastrado) {
     setAnuncioSelecionado(anuncio)
     setModalAberto(true)
   }
@@ -63,8 +65,16 @@ function MeusAnuncios() {
       return
     }
 
-    setAnuncios((anunciosAtuais) =>
-      anunciosAtuais.filter((anuncio) => anuncio.id !== anuncioSelecionado.id),
+    const anunciosAtualizados = anuncios.filter(
+      (anuncio) => anuncio.id !== anuncioSelecionado.id,
+    )
+
+    setAnuncios(anunciosAtualizados)
+    localStorage.setItem(chaveProdutos, JSON.stringify(anunciosAtualizados))
+
+    console.log(
+      'JSON do produto excluído:',
+      JSON.stringify(anuncioSelecionado, null, 2),
     )
 
     toast.success('Anúncio excluído com sucesso!')
@@ -73,7 +83,7 @@ function MeusAnuncios() {
 
   return (
     <section className="relative min-h-[650px] bg-[#f5f5f5] px-6 py-16">
-      <div className="mx-auto max-w-5xl">
+      <div className="mx-auto w-full max-w-5xl">
         <div className="mb-12 flex items-center justify-between">
           <h1 className="text-2xl font-semibold text-gray-700">
             Anúncios
@@ -94,24 +104,31 @@ function MeusAnuncios() {
             </h2>
 
             <p className="mt-2 text-sm text-gray-500">
-              Clique em adicionar para cadastrar um novo produto.
+              Clique em adicionar para cadastrar um novo produto no seu perfil.
             </p>
+
+            <Link
+              to="/dashboard/anuncios/novo"
+              className="mt-6 inline-block rounded-lg bg-[#0067A8] px-6 py-3 text-sm font-bold text-white shadow-md transition hover:bg-[#00568c]"
+            >
+              Cadastrar anúncio
+            </Link>
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-4 gap-6">
+            <div className="mx-auto w-full max-w-5xl">
               {anuncios.map((anuncio) => (
                 <div
                   key={anuncio.id}
                   className="relative bg-white p-4 shadow-md transition hover:-translate-y-1 hover:shadow-lg hover:ring-2 hover:ring-[#1E9BDE]"
                 >
                   <h2 className="mb-5 text-sm font-bold text-gray-700">
-                    {anuncio.nome} (8ª Geração)
+                    {anuncio.nome}
                   </h2>
 
                   <div className="mb-5 flex h-32 items-center justify-center">
                     <img
-                      src={anuncio.imagem}
+                      src={anuncio.imagemPrincipal}
                       alt={anuncio.nome}
                       className="h-28 w-28 object-contain"
                     />
@@ -120,11 +137,11 @@ function MeusAnuncios() {
                   <div className="flex items-end justify-between">
                     <div>
                       <p className="text-sm text-gray-500">
-                        {anuncio.marca}
+                        {anuncio.fabricante}
                       </p>
 
                       <p className="text-xl font-semibold text-gray-600">
-                        {anuncio.preco}
+                        R$ {anuncio.preco}
                       </p>
                     </div>
 
@@ -192,7 +209,11 @@ function MeusAnuncios() {
               </p>
 
               <p className="mt-2 font-bold text-gray-800">
-                {anuncioSelecionado.nome} (8ª Geração)
+                {anuncioSelecionado.nome}
+              </p>
+
+              <p className="mt-1 text-sm text-gray-500">
+                {anuncioSelecionado.fabricante} - R$ {anuncioSelecionado.preco}
               </p>
             </div>
 

@@ -11,7 +11,7 @@ import {
 function QuemSomos() {
   return (
     <section className="bg-[#f5f5f5] px-6 py-12">
-      <div className="mx-auto max-w-5xl">
+      <div className="mx-auto w-full max-w-5xl">
         {/* Hero */}
         <div className="mb-14 overflow-hidden rounded-2xl bg-white shadow-lg">
           <div className="grid grid-cols-1 md:grid-cols-2">

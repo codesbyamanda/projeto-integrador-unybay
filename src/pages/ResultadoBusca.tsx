@@ -79,8 +79,8 @@ function ResultadoBusca() {
   const produtosExibidos = ordenarProdutos(produtos)
 
   return (
-    <section className="bg-[#f5f5f5] px-6 py-10">
-      <div className="mx-auto max-w-5xl">
+    <section className="bg-[#f5f5f5] px-4 py-8 sm:px-6 sm:py-10">
+      <div className="mx-auto w-full max-w-5xl">
         <div className="mb-10 flex items-start justify-between gap-6">
           <div>
             <h1 className="mb-4 text-2xl font-semibold text-gray-700">
@@ -142,13 +142,13 @@ function ResultadoBusca() {
         </div>
 
         {carregandoProdutos ? (
-          <div className="grid grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {Array.from({ length: 12 }).map((_, index) => (
               <ProductCardSkeleton key={index} />
             ))}
           </div>
         ) : produtosExibidos.length > 0 ? (
-          <div className="grid grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {produtosExibidos.map((produto) => (
               <ProductCard
                 key={produto.id}

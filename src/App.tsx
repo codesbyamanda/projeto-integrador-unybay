@@ -15,6 +15,7 @@ import FaleConosco from './pages/FaleConosco'
 
 import Dashboard from './pages/admin/Dashboard'
 import MeusAnuncios from './pages/admin/MeusAnuncios'
+import AnuncioDetalhes from './pages/admin/AnuncioDetalhes'
 import CadastrarProduto from './pages/admin/CadastrarProduto'
 
 import ScrollToTop from './utils/ScrollToTop'
@@ -49,6 +50,7 @@ function App() {
           <Route path="/dashboard/resultado-busca" element={<ResultadoBusca />} />
 
           <Route path="/dashboard/anuncios" element={<MeusAnuncios />} />
+          <Route path="/dashboard/anuncios/:id" element={<AnuncioDetalhes />} />
           <Route
             path="/dashboard/anuncios/novo"
             element={<CadastrarProduto />}

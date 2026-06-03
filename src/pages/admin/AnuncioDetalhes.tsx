@@ -1,57 +1,92 @@
 import { useEffect, useState } from 'react'
-import { Link, useLocation, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa'
-import { api } from '../services/api'
 import { toast } from 'react-toastify'
+import { useAuth } from '../../contexts/AuthContext'
 
-type ProdutoDetalhe = {
+type ProdutoCadastrado = {
   id: number
-  title: string
-  brand?: string
-  category: string
-  description: string
-  price: number
-  thumbnail: string
-  images: string[]
+  usuarioEmail: string
+  nome: string
+  fabricante: string
+  categoria: string
+  preco: string
+  imagemPrincipal: string
+  imagemSecundaria: string
+  descricao: string
 }
 
-function ProdutoDetalhes() {
+function AnuncioDetalhes() {
   const { id } = useParams()
-  const location = useLocation()
+  const navigate = useNavigate()
+  const { usuario } = useAuth()
 
-  const estaNoDashboard = location.pathname.startsWith('/dashboard')
-  const rotaVoltar = estaNoDashboard ? '/dashboard/produtos' : '/produtos'
-
-  const [produto, setProduto] = useState<ProdutoDetalhe | null>(null)
+  const [anuncio, setAnuncio] = useState<ProdutoCadastrado | null>(null)
   const [imagemAtual, setImagemAtual] = useState(0)
-  const [carregando, setCarregando] = useState(true)
 
   useEffect(() => {
-    async function buscarProduto() {
-      try {
-        setCarregando(true)
-
-        const resposta = await api.get(`/products/${id}`)
-
-        setProduto(resposta.data)
-        setImagemAtual(0)
-      } catch (error) {
-        console.error('Erro ao buscar detalhes do produto:', error)
-        toast.error('Erro ao buscar detalhes do produto.')
-      } finally {
-        setCarregando(false)
-      }
-    }
-
-    buscarProduto()
-  }, [id])
-
-  function proximaImagem() {
-    if (!produto || produto.images.length <= 1) {
+    if (!usuario) {
+      toast.error('Você precisa estar logado para acessar este anúncio.')
+      navigate('/login')
       return
     }
 
-    if (imagemAtual === produto.images.length - 1) {
+    const chaveProdutos = `@unybay:produtos:${usuario.email}`
+    const produtosSalvos = localStorage.getItem(chaveProdutos)
+
+    if (!produtosSalvos) {
+      setAnuncio(null)
+      return
+    }
+
+    const produtos: ProdutoCadastrado[] = JSON.parse(produtosSalvos)
+
+    const produtoEncontrado = produtos.find(
+      (produto) => produto.id === Number(id),
+    )
+
+    if (produtoEncontrado) {
+      setAnuncio(produtoEncontrado)
+    } else {
+      setAnuncio(null)
+    }
+  }, [id, usuario, navigate])
+
+  if (!anuncio) {
+    return (
+      <section className="bg-[#f5f5f5] px-4 py-10 sm:px-6 sm:py-16">
+        <div className="mx-auto w-full max-w-5xl rounded-lg bg-white p-6 text-center shadow-md sm:p-10">
+          <h1 className="text-xl font-semibold text-gray-700 sm:text-2xl">
+            Anúncio não encontrado
+          </h1>
+
+          <p className="mt-2 text-sm text-gray-500">
+            Esse anúncio não existe ou não pertence ao usuário logado.
+          </p>
+
+          <Link
+            to="/dashboard/anuncios"
+            className="mt-6 inline-block rounded-lg bg-[#0067A8] px-6 py-3 text-sm font-bold text-white shadow-md transition hover:bg-[#00568c]"
+          >
+            Voltar para meus anúncios
+          </Link>
+        </div>
+      </section>
+    )
+  }
+
+  const imagens = [anuncio.imagemPrincipal, anuncio.imagemSecundaria].filter(
+    Boolean,
+  )
+
+  const imagemExibida = imagens[imagemAtual] || anuncio.imagemPrincipal
+
+  function proximaImagem() {
+    if (imagens.length <= 1) {
+      return
+    }
+
+    if (imagemAtual === imagens.length - 1) {
       setImagemAtual(0)
     } else {
       setImagemAtual(imagemAtual + 1)
@@ -59,70 +94,27 @@ function ProdutoDetalhes() {
   }
 
   function imagemAnterior() {
-    if (!produto || produto.images.length <= 1) {
+    if (imagens.length <= 1) {
       return
     }
 
     if (imagemAtual === 0) {
-      setImagemAtual(produto.images.length - 1)
+      setImagemAtual(imagens.length - 1)
     } else {
       setImagemAtual(imagemAtual - 1)
     }
   }
-
-  if (carregando) {
-    return (
-      <section className="overflow-x-hidden bg-[#f5f5f5] px-4 py-8 sm:px-6 sm:py-10">
-        <div className="mx-auto w-full max-w-5xl">
-          <div className="mb-8 h-8 w-full max-w-64 animate-pulse rounded bg-gray-200"></div>
-
-          <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-10">
-            <div className="h-[280px] animate-pulse rounded-lg bg-gray-200 sm:h-[360px]"></div>
-            <div className="h-[280px] animate-pulse rounded-lg bg-gray-200 sm:h-[360px]"></div>
-          </div>
-
-          <div className="mt-12 h-40 animate-pulse rounded-lg bg-gray-200"></div>
-        </div>
-      </section>
-    )
-  }
-
-  if (!produto) {
-    return (
-      <section className="bg-[#f5f5f5] px-4 py-10 sm:px-6 sm:py-16">
-        <div className="mx-auto w-full max-w-5xl rounded-lg bg-white p-6 text-center shadow-md sm:p-10">
-          <h1 className="text-xl font-semibold text-gray-700 sm:text-2xl">
-            Produto não encontrado
-          </h1>
-
-          <Link
-            to={rotaVoltar}
-            className="mt-6 inline-block w-full rounded-full bg-[#0067A8] px-6 py-3 text-center text-sm font-semibold text-white shadow-md transition hover:bg-[#00568c] sm:w-auto"
-          >
-            Voltar para produtos
-          </Link>
-        </div>
-      </section>
-    )
-  }
-
-  const imagens =
-    produto.images && produto.images.length > 0
-      ? produto.images
-      : [produto.thumbnail]
-
-  const imagemProduto = imagens[imagemAtual] || produto.thumbnail
 
   return (
     <section className="overflow-x-hidden bg-[#f5f5f5] px-4 py-8 sm:px-6 sm:py-10">
       <div className="mx-auto w-full max-w-5xl">
         <div className="mb-8">
           <p className="mb-3 text-sm text-gray-500">
-            Resultado de Busca
+            Meus anúncios
           </p>
 
           <h1 className="break-words text-2xl font-semibold text-gray-800 sm:text-3xl">
-            {produto.title}
+            {anuncio.nome}
           </h1>
         </div>
 
@@ -140,8 +132,8 @@ function ProdutoDetalhes() {
             )}
 
             <img
-              src={imagemProduto}
-              alt={produto.title}
+              src={imagemExibida}
+              alt={anuncio.nome}
               className="max-h-64 w-full max-w-[260px] object-contain sm:max-h-80 sm:max-w-[320px]"
             />
 
@@ -168,28 +160,28 @@ function ProdutoDetalhes() {
                   <span className="font-semibold text-gray-700">
                     Produto:
                   </span>{' '}
-                  {produto.title}
+                  {anuncio.nome}
                 </p>
 
                 <p className="break-words">
                   <span className="font-semibold text-gray-700">
-                    Marca:
+                    Fabricante:
                   </span>{' '}
-                  {produto.brand || 'Marca não informada'}
+                  {anuncio.fabricante}
                 </p>
 
                 <p className="break-words">
                   <span className="font-semibold text-gray-700">
                     Categoria:
                   </span>{' '}
-                  {produto.category}
+                  {anuncio.categoria}
                 </p>
 
                 <p className="break-words">
                   <span className="font-semibold text-gray-700">
                     Vendedor:
                   </span>{' '}
-                  Unybay Store
+                  {usuario?.nome || usuario?.email}
                 </p>
               </div>
 
@@ -199,9 +191,16 @@ function ProdutoDetalhes() {
                 </p>
 
                 <p className="mt-1 break-words text-2xl font-semibold text-gray-700 sm:text-3xl">
-                  R$ {produto.price}
+                  R$ {anuncio.preco}
                 </p>
               </div>
+
+              <Link
+                to={`/dashboard/anuncios/editar/${anuncio.id}`}
+                className="mt-8 inline-block w-full rounded-lg bg-orange-500 px-6 py-3 text-center text-sm font-bold text-white shadow-md transition hover:bg-orange-600 sm:w-auto"
+              >
+                Editar anúncio
+              </Link>
             </div>
           </div>
         </div>
@@ -211,30 +210,17 @@ function ProdutoDetalhes() {
             Descrição
           </h2>
 
-          <div className="rounded-lg bg-white p-6 text-sm leading-7 text-gray-600 shadow-sm">
-            <p className="break-words">
-              {produto.description}
-            </p>
-
-            <ul className="mt-4 list-disc space-y-2 pl-6">
-              <li>
-                Produto disponível na categoria {produto.category}.
-              </li>
-              <li>
-                Informações carregadas diretamente da API.
-              </li>
-              <li>
-                Imagens e dados atualizados conforme o produto selecionado.
-              </li>
-            </ul>
-          </div>
+          <div
+            className="prose prose-sm max-w-none break-words rounded-lg bg-white p-6 leading-7 text-gray-600 shadow-sm"
+            dangerouslySetInnerHTML={{ __html: anuncio.descricao }}
+          ></div>
 
           <div className="mt-10">
             <Link
-              to={rotaVoltar}
+              to="/dashboard/anuncios"
               className="inline-block w-full rounded-full bg-[#0067A8] px-6 py-3 text-center text-sm font-semibold text-white shadow-md transition hover:bg-[#00568c] sm:w-auto"
             >
-              Voltar para produtos
+              Voltar para meus anúncios
             </Link>
           </div>
         </div>
@@ -243,4 +229,4 @@ function ProdutoDetalhes() {
   )
 }
 
-export default ProdutoDetalhes
+export default AnuncioDetalhes
