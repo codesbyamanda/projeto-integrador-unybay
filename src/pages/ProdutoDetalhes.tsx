@@ -1,20 +1,115 @@
-import { Link, useParams } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Link, useLocation, useParams } from 'react-router-dom'
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa'
+import { api } from '../services/api'
+import { toast } from 'react-toastify'
+
+type ProdutoDetalhe = {
+  id: number
+  title: string
+  brand?: string
+  category: string
+  description: string
+  price: number
+  thumbnail: string
+  images: string[]
+}
 
 function ProdutoDetalhes() {
   const { id } = useParams()
+  const location = useLocation()
 
-  const produto = {
-    id,
-    nome: 'Echo Dot',
-    geracao: '8ª Geração',
-    marca: 'Amazon',
-    modelo: 'Echo Dot com Alexa',
-    categoria: 'Eletrônicos',
-    vendedor: 'Unybay Store',
-    preco: 'R$ 799,00',
-    imagem: '/echo-dot.jpg',
+  const estaNoDashboard = location.pathname.startsWith('/dashboard')
+  const rotaVoltar = estaNoDashboard ? '/dashboard/produtos' : '/produtos'
+
+  const [produto, setProduto] = useState<ProdutoDetalhe | null>(null)
+  const [imagemAtual, setImagemAtual] = useState(0)
+  const [carregando, setCarregando] = useState(true)
+
+  useEffect(() => {
+    async function buscarProduto() {
+      try {
+        setCarregando(true)
+
+        const resposta = await api.get(`/products/${id}`)
+
+        setProduto(resposta.data)
+        setImagemAtual(0)
+      } catch (error) {
+        console.error('Erro ao buscar detalhes do produto:', error)
+        toast.error('Erro ao buscar detalhes do produto.')
+      } finally {
+        setCarregando(false)
+      }
+    }
+
+    buscarProduto()
+  }, [id])
+
+  function proximaImagem() {
+    if (!produto || produto.images.length === 0) {
+      return
+    }
+
+    if (imagemAtual === produto.images.length - 1) {
+      setImagemAtual(0)
+    } else {
+      setImagemAtual(imagemAtual + 1)
+    }
   }
+
+  function imagemAnterior() {
+    if (!produto || produto.images.length === 0) {
+      return
+    }
+
+    if (imagemAtual === 0) {
+      setImagemAtual(produto.images.length - 1)
+    } else {
+      setImagemAtual(imagemAtual - 1)
+    }
+  }
+
+  if (carregando) {
+    return (
+      <section className="bg-[#f5f5f5] px-6 py-10">
+        <div className="mx-auto max-w-5xl">
+          <div className="mb-8 h-8 w-64 animate-pulse rounded bg-gray-200"></div>
+
+          <div className="grid grid-cols-2 gap-10">
+            <div className="h-[360px] animate-pulse rounded bg-gray-200"></div>
+            <div className="h-[360px] animate-pulse rounded bg-gray-200"></div>
+          </div>
+
+          <div className="mt-12 h-40 animate-pulse rounded bg-gray-200"></div>
+        </div>
+      </section>
+    )
+  }
+
+  if (!produto) {
+    return (
+      <section className="bg-[#f5f5f5] px-6 py-10">
+        <div className="mx-auto max-w-5xl rounded-lg bg-white p-10 text-center shadow-md">
+          <h1 className="text-2xl font-semibold text-gray-700">
+            Produto não encontrado
+          </h1>
+
+          <Link
+            to={rotaVoltar}
+            className="mt-6 inline-block rounded-full bg-[#0067A8] px-6 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-[#00568c]"
+          >
+            Voltar para produtos
+          </Link>
+        </div>
+      </section>
+    )
+  }
+
+  const imagemProduto =
+    produto.images && produto.images.length > 0
+      ? produto.images[imagemAtual]
+      : produto.thumbnail
 
   return (
     <section className="bg-[#f5f5f5] px-6 py-10">
@@ -25,14 +120,15 @@ function ProdutoDetalhes() {
           </p>
 
           <h1 className="text-2xl font-semibold text-gray-800">
-            {produto.nome} ({produto.geracao})
+            {produto.title}
           </h1>
         </div>
 
         <div className="mb-12 grid grid-cols-2 gap-10">
-          {/* Imagem do produto */}
           <div className="relative flex min-h-[360px] items-center justify-center bg-white shadow-sm">
             <button
+              type="button"
+              onClick={imagemAnterior}
               className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl text-orange-400 hover:text-orange-500"
               aria-label="Imagem anterior"
             >
@@ -40,12 +136,14 @@ function ProdutoDetalhes() {
             </button>
 
             <img
-              src={produto.imagem}
-              alt={produto.nome}
+              src={imagemProduto}
+              alt={produto.title}
               className="h-80 w-80 object-contain"
             />
 
             <button
+              type="button"
+              onClick={proximaImagem}
               className="absolute right-4 top-1/2 -translate-y-1/2 text-2xl text-orange-400 hover:text-orange-500"
               aria-label="Próxima imagem"
             >
@@ -53,7 +151,6 @@ function ProdutoDetalhes() {
             </button>
           </div>
 
-          {/* Informações do produto */}
           <div className="flex items-start">
             <div className="w-full bg-white p-8 shadow-sm">
               <h2 className="mb-5 text-lg font-semibold text-gray-700">
@@ -65,35 +162,28 @@ function ProdutoDetalhes() {
                   <span className="font-semibold text-gray-700">
                     Produto:
                   </span>{' '}
-                  {produto.nome}
-                </p>
-
-                <p>
-                  <span className="font-semibold text-gray-700">
-                    Modelo:
-                  </span>{' '}
-                  {produto.modelo}
+                  {produto.title}
                 </p>
 
                 <p>
                   <span className="font-semibold text-gray-700">
                     Marca:
                   </span>{' '}
-                  {produto.marca}
+                  {produto.brand || 'Marca não informada'}
                 </p>
 
                 <p>
                   <span className="font-semibold text-gray-700">
                     Categoria:
                   </span>{' '}
-                  {produto.categoria}
+                  {produto.category}
                 </p>
 
                 <p>
                   <span className="font-semibold text-gray-700">
                     Vendedor:
                   </span>{' '}
-                  {produto.vendedor}
+                  Unybay Store
                 </p>
               </div>
 
@@ -103,14 +193,13 @@ function ProdutoDetalhes() {
                 </p>
 
                 <p className="mt-1 text-3xl font-semibold text-gray-700">
-                  {produto.preco}
+                  R$ {produto.price}
                 </p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Descrição */}
         <div className="max-w-4xl">
           <h2 className="mb-5 text-xl font-semibold text-gray-800">
             Descrição
@@ -118,37 +207,25 @@ function ProdutoDetalhes() {
 
           <div className="space-y-4 text-sm leading-7 text-gray-600">
             <p>
-              Com design moderno e compacto, o Echo Dot é ideal para quem
-              deseja praticidade no dia a dia. Ele permite ouvir músicas,
-              acompanhar notícias, controlar dispositivos inteligentes e
-              utilizar comandos de voz com a assistente Alexa.
-            </p>
-
-            <p>
-              O produto conta com boa qualidade de som, conectividade simples e
-              integração com diferentes serviços. É uma opção prática para
-              ambientes como quarto, sala, escritório ou cozinha.
+              {produto.description}
             </p>
 
             <ul className="list-disc space-y-2 pl-6">
               <li>
-                Ideal para ouvir músicas, podcasts e notícias.
+                Produto disponível na categoria {produto.category}.
               </li>
               <li>
-                Compatível com comandos de voz por meio da Alexa.
+                Informações carregadas diretamente da API.
               </li>
               <li>
-                Design compacto, moderno e fácil de instalar.
-              </li>
-              <li>
-                Pode auxiliar no controle de dispositivos inteligentes.
+                Imagens e dados atualizados conforme o produto selecionado.
               </li>
             </ul>
           </div>
 
           <div className="mt-10">
             <Link
-              to="/produtos"
+              to={rotaVoltar}
               className="inline-block rounded-full bg-[#0067A8] px-6 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-[#00568c]"
             >
               Voltar para produtos
