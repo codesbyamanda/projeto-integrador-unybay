@@ -1,7 +1,8 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { toast } from 'react-toastify'
+import { PatternFormat } from 'react-number-format'
 import * as yup from 'yup'
 import { useAuth } from '../contexts/AuthContext'
 
@@ -52,21 +53,34 @@ function Cadastro() {
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors, isSubmitted },
   } = useForm<CadastroFormData>({
     resolver: yupResolver(cadastroSchema),
+    defaultValues: {
+      nome: '',
+      email: '',
+      telefone: '',
+      cidade: '',
+      estado: '',
+      senha: '',
+    },
   })
 
   function cadastrar(dados: CadastroFormData) {
     const novoUsuario = {
       nome: dados.nome,
       email: dados.email,
+      token: `unybay-token-${Date.now()}`,
     }
 
     login(novoUsuario)
 
     console.log('JSON do cadastro:', JSON.stringify(dados, null, 2))
-    console.log('Usuário logado após cadastro:', JSON.stringify(novoUsuario, null, 2))
+    console.log(
+      'Usuário logado após cadastro:',
+      JSON.stringify(novoUsuario, null, 2),
+    )
 
     toast.success('Cadastro realizado com sucesso!')
 
@@ -78,14 +92,14 @@ function Cadastro() {
   const possuiErros = Object.keys(errors).length > 0
 
   return (
-    <section className="flex min-h-[760px] items-center justify-center bg-[#f5f5f5] px-6 py-16">
-      <div className="w-full max-w-2xl rounded-lg bg-white px-14 py-12 shadow-lg">
+    <section className="flex min-h-[760px] items-center justify-center bg-[#f5f5f5] px-4 py-10 sm:px-6 sm:py-16">
+      <div className="w-full max-w-2xl rounded-lg bg-white px-5 py-8 shadow-lg sm:px-10 sm:py-10 lg:px-14 lg:py-12">
         <div className="mb-8 text-center">
           <h1 className="text-3xl font-bold text-[#0067A8]">
             Unybay
           </h1>
 
-          <p className="mt-8 text-sm font-medium text-gray-500">
+          <p className="mt-6 text-sm font-medium text-gray-500 sm:mt-8">
             Cadastre-se
           </p>
         </div>
@@ -96,13 +110,13 @@ function Cadastro() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit(cadastrar)} className="mx-auto max-w-md">
+        <form onSubmit={handleSubmit(cadastrar)} className="mx-auto w-full max-w-md">
           <div className="mb-3">
             <input
               type="text"
               placeholder="Nome"
               {...register('nome')}
-              className={`w-full rounded-lg border px-5 py-3 text-sm text-gray-700 shadow-md outline-none transition focus:ring-2 ${
+              className={`w-full rounded-lg border px-4 py-3 text-sm text-gray-700 shadow-md outline-none transition focus:ring-2 sm:px-5 ${
                 errors.nome
                   ? 'border-red-300 focus:border-red-400 focus:ring-red-100'
                   : 'border-gray-200 focus:border-[#0067A8] focus:ring-blue-100'
@@ -110,7 +124,7 @@ function Cadastro() {
             />
 
             {errors.nome && (
-              <p className="mt-1 pl-4 text-xs font-semibold text-red-400">
+              <p className="mt-1 pl-2 text-xs font-semibold text-red-400 sm:pl-4">
                 {errors.nome.message}
               </p>
             )}
@@ -121,7 +135,7 @@ function Cadastro() {
               type="email"
               placeholder="E-mail"
               {...register('email')}
-              className={`w-full rounded-lg border px-5 py-3 text-sm text-gray-700 shadow-md outline-none transition focus:ring-2 ${
+              className={`w-full rounded-lg border px-4 py-3 text-sm text-gray-700 shadow-md outline-none transition focus:ring-2 sm:px-5 ${
                 errors.email
                   ? 'border-red-300 focus:border-red-400 focus:ring-red-100'
                   : 'border-gray-200 focus:border-[#0067A8] focus:ring-blue-100'
@@ -129,75 +143,86 @@ function Cadastro() {
             />
 
             {errors.email && (
-              <p className="mt-1 pl-4 text-xs font-semibold text-red-400">
+              <p className="mt-1 pl-2 text-xs font-semibold text-red-400 sm:pl-4">
                 {errors.email.message}
               </p>
             )}
           </div>
 
           <div className="mb-3">
-            <input
-              type="text"
-              placeholder="Telefone"
-              {...register('telefone')}
-              className={`w-full rounded-lg border px-5 py-3 text-sm text-gray-700 shadow-md outline-none transition focus:ring-2 ${
-                errors.telefone
-                  ? 'border-red-300 focus:border-red-400 focus:ring-red-100'
-                  : 'border-gray-200 focus:border-[#0067A8] focus:ring-blue-100'
-              }`}
+            <Controller
+              name="telefone"
+              control={control}
+              render={({ field }) => (
+                <PatternFormat
+                  format="(##) #####-####"
+                  placeholder="Telefone"
+                  value={field.value}
+                  onValueChange={(values) => {
+                    field.onChange(values.value)
+                  }}
+                  className={`w-full rounded-lg border px-4 py-3 text-sm text-gray-700 shadow-md outline-none transition focus:ring-2 sm:px-5 ${
+                    errors.telefone
+                      ? 'border-red-300 focus:border-red-400 focus:ring-red-100'
+                      : 'border-gray-200 focus:border-[#0067A8] focus:ring-blue-100'
+                  }`}
+                />
+              )}
             />
 
             {errors.telefone && (
-              <p className="mt-1 pl-4 text-xs font-semibold text-red-400">
+              <p className="mt-1 pl-2 text-xs font-semibold text-red-400 sm:pl-4">
                 {errors.telefone.message}
               </p>
             )}
           </div>
 
-          <div className="mb-3">
-            <input
-              type="text"
-              placeholder="Cidade"
-              {...register('cidade')}
-              className={`w-full rounded-lg border px-5 py-3 text-sm text-gray-700 shadow-md outline-none transition focus:ring-2 ${
-                errors.cidade
-                  ? 'border-red-300 focus:border-red-400 focus:ring-red-100'
-                  : 'border-gray-200 focus:border-[#0067A8] focus:ring-blue-100'
-              }`}
-            />
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div>
+              <input
+                type="text"
+                placeholder="Cidade"
+                {...register('cidade')}
+                className={`w-full rounded-lg border px-4 py-3 text-sm text-gray-700 shadow-md outline-none transition focus:ring-2 sm:px-5 ${
+                  errors.cidade
+                    ? 'border-red-300 focus:border-red-400 focus:ring-red-100'
+                    : 'border-gray-200 focus:border-[#0067A8] focus:ring-blue-100'
+                }`}
+              />
 
-            {errors.cidade && (
-              <p className="mt-1 pl-4 text-xs font-semibold text-red-400">
-                {errors.cidade.message}
-              </p>
-            )}
+              {errors.cidade && (
+                <p className="mt-1 pl-2 text-xs font-semibold text-red-400 sm:pl-4">
+                  {errors.cidade.message}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <input
+                type="text"
+                placeholder="Estado"
+                {...register('estado')}
+                className={`w-full rounded-lg border px-4 py-3 text-sm text-gray-700 shadow-md outline-none transition focus:ring-2 sm:px-5 ${
+                  errors.estado
+                    ? 'border-red-300 focus:border-red-400 focus:ring-red-100'
+                    : 'border-gray-200 focus:border-[#0067A8] focus:ring-blue-100'
+                }`}
+              />
+
+              {errors.estado && (
+                <p className="mt-1 pl-2 text-xs font-semibold text-red-400 sm:pl-4">
+                  {errors.estado.message}
+                </p>
+              )}
+            </div>
           </div>
 
-          <div className="mb-3">
-            <input
-              type="text"
-              placeholder="Estado"
-              {...register('estado')}
-              className={`w-full rounded-lg border px-5 py-3 text-sm text-gray-700 shadow-md outline-none transition focus:ring-2 ${
-                errors.estado
-                  ? 'border-red-300 focus:border-red-400 focus:ring-red-100'
-                  : 'border-gray-200 focus:border-[#0067A8] focus:ring-blue-100'
-              }`}
-            />
-
-            {errors.estado && (
-              <p className="mt-1 pl-4 text-xs font-semibold text-red-400">
-                {errors.estado.message}
-              </p>
-            )}
-          </div>
-
-          <div className="mb-6">
+          <div className="mb-6 mt-3">
             <input
               type="password"
               placeholder="Senha"
               {...register('senha')}
-              className={`w-full rounded-lg border px-5 py-3 text-sm text-gray-700 shadow-md outline-none transition focus:ring-2 ${
+              className={`w-full rounded-lg border px-4 py-3 text-sm text-gray-700 shadow-md outline-none transition focus:ring-2 sm:px-5 ${
                 errors.senha
                   ? 'border-red-300 focus:border-red-400 focus:ring-red-100'
                   : 'border-gray-200 focus:border-[#0067A8] focus:ring-blue-100'
@@ -205,7 +230,7 @@ function Cadastro() {
             />
 
             {errors.senha && (
-              <p className="mt-1 pl-4 text-xs font-semibold text-red-400">
+              <p className="mt-1 pl-2 text-xs font-semibold text-red-400 sm:pl-4">
                 {errors.senha.message}
               </p>
             )}

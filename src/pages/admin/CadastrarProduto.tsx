@@ -4,6 +4,7 @@ import { Controller, useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'react-toastify'
+import { NumericFormat } from 'react-number-format'
 import ReactQuill from 'react-quill-new'
 import 'react-quill-new/dist/quill.snow.css'
 import * as yup from 'yup'
@@ -303,8 +304,8 @@ function CadastrarProduto() {
   const possuiErros = Object.keys(errors).length > 0
 
   return (
-    <section className="min-h-[650px] bg-[#f5f5f5] px-6 py-20">
-      <div className="mx-auto max-w-6xl">
+    <section className="min-h-[650px] bg-[#f5f5f5] px-4 py-10 sm:px-6 sm:py-16 lg:py-20">
+      <div className="mx-auto w-full max-w-6xl">
         <div className="mb-10">
           <h1 className="text-2xl font-semibold text-gray-700">
             {estaEditando ? 'Editar anúncio' : 'Cadastrar anúncio'}
@@ -324,7 +325,7 @@ function CadastrarProduto() {
         )}
 
         <form onSubmit={handleSubmit(salvarProduto)}>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             <div>
               <input
                 type="text"
@@ -391,15 +392,29 @@ function CadastrarProduto() {
             </div>
 
             <div>
-              <input
-                type="text"
-                placeholder="Preço"
-                {...register('preco')}
-                className={`w-full rounded-md border bg-white px-4 py-3 text-sm text-gray-700 shadow-sm outline-none transition focus:ring-2 ${
-                  errors.preco
-                    ? 'border-red-300 focus:border-red-400 focus:ring-red-100'
-                    : 'border-gray-200 focus:border-[#0067A8] focus:ring-blue-100'
-                }`}
+              <Controller
+                name="preco"
+                control={control}
+                render={({ field }) => (
+                  <NumericFormat
+                    placeholder="Preço"
+                    value={field.value}
+                    onValueChange={(values) => {
+                      field.onChange(values.formattedValue)
+                    }}
+                    thousandSeparator="."
+                    decimalSeparator=","
+                    prefix="R$ "
+                    decimalScale={2}
+                    fixedDecimalScale
+                    allowNegative={false}
+                    className={`w-full rounded-md border bg-white px-4 py-3 text-sm text-gray-700 shadow-sm outline-none transition focus:ring-2 ${
+                      errors.preco
+                        ? 'border-red-300 focus:border-red-400 focus:ring-red-100'
+                        : 'border-gray-200 focus:border-[#0067A8] focus:ring-blue-100'
+                    }`}
+                  />
+                )}
               />
 
               {errors.preco && (
