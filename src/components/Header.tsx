@@ -27,7 +27,7 @@ function Header() {
         </Link>
 
         <Link
-          to="/produtos"
+          to="/login"
           className="bg-orange-500 text-white font-semibold px-8 py-3 rounded-full shadow-md hover:bg-orange-600 hover:shadow-lg transition-all"
         >
           Entrar
