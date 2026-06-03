@@ -1,73 +1,95 @@
-# React + TypeScript + Vite
+# UnyBay - Projeto Integrador
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Este projeto foi desenvolvido como parte do Projeto Integrador do curso, com o objetivo de criar uma aplicação web utilizando React, TypeScript, Vite e Tailwind CSS.
 
-Currently, two official plugins are available:
+A proposta da aplicação é simular uma plataforma de marketplace chamada **UnyBay**, onde o usuário pode visualizar produtos, acessar uma listagem completa, pesquisar itens, ver detalhes de um produto específico e acessar uma página institucional de “Quem Somos”.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Funcionalidades
 
-## React Compiler
+* Página inicial com banner em carrossel;
+* Campo de busca de produtos;
+* Seção de itens recentes;
+* Seção de categorias;
+* Listagem de anúncios;
+* Página com todos os produtos;
+* Página de resultado de busca;
+* Página de detalhes do produto;
+* Página “Quem Somos”;
+* Header e Footer reutilizáveis através de um layout principal.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Tecnologias utilizadas
 
-## Expanding the ESLint configuration
+* React
+* TypeScript
+* Vite
+* Tailwind CSS
+* React Router DOM
+* React Icons
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Estrutura do projeto
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```txt
+src
+├── components
+│   ├── Header.tsx
+│   └── Footer.tsx
+├── layouts
+│   └── MainLayout.tsx
+├── pages
+│   ├── Home.tsx
+│   ├── Produtos.tsx
+│   ├── ResultadoBusca.tsx
+│   ├── ProdutoDetalhes.tsx
+│   └── QuemSomos.tsx
+├── App.tsx
+├── index.css
+└── main.tsx
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Como executar o projeto
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Primeiro, clone o repositório:
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+git clone LINK_DO_REPOSITORIO
 ```
+
+Acesse a pasta do projeto:
+
+```bash
+cd projeto-integrador
+```
+
+Instale as dependências:
+
+```bash
+npm install
+```
+
+Execute o projeto:
+
+```bash
+npm run dev
+```
+
+Depois, acesse o endereço exibido no terminal, normalmente:
+
+```txt
+http://localhost:5173
+```
+
+## Páginas do sistema
+
+* `/` - Página inicial
+* `/produtos` - Listagem de produtos
+* `/resultado-busca` - Resultado da busca
+* `/produtos/:id` - Detalhes do produto
+* `/quem-somos` - Página institucional
+
+## Sobre o projeto
+
+A UnyBay é uma aplicação fictícia criada para fins acadêmicos. O projeto tem como objetivo aplicar conceitos de componentização, rotas, estilização com Tailwind CSS e organização de páginas em uma aplicação React.
+
+## Autora
+
+Desenvolvido por Amanda como atividade do Projeto Integrador.
