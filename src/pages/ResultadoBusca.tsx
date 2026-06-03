@@ -1,10 +1,12 @@
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useLocation, useSearchParams } from 'react-router-dom'
 import { FaSearch } from 'react-icons/fa'
 
 function ResultadoBusca() {
   const [searchParams] = useSearchParams()
+  const location = useLocation()
 
   const busca = searchParams.get('q') || 'produto'
+  const estaNoDashboard = location.pathname.startsWith('/dashboard')
 
   const produtos = [
     { id: 1, nome: 'Echo Dot', preco: 'R$ 700,99', imagem: '/echo-dot.jpg' },
@@ -76,7 +78,11 @@ function ResultadoBusca() {
         <div className="grid grid-cols-4 gap-6">
           {produtos.map((produto) => (
             <Link
-              to={`/produtos/${produto.id}`}
+              to={
+                estaNoDashboard
+                  ? `/dashboard/produtos/${produto.id}`
+                  : `/produtos/${produto.id}`
+              }
               key={produto.id}
               className="bg-white p-4 shadow-md transition hover:-translate-y-1 hover:shadow-lg hover:ring-2 hover:ring-[#0067A8]"
             >

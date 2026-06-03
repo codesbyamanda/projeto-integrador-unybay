@@ -86,15 +86,15 @@ function Dashboard() {
     }
   }
 
-  function pesquisarProduto(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault()
+ function pesquisarProduto(event: React.FormEvent<HTMLFormElement>) {
+  event.preventDefault()
 
-    if (busca.trim() === '') {
-      return
-    }
-
-    navigate(`/resultado-busca?q=${busca}`)
+  if (busca.trim() === '') {
+    return
   }
+
+  navigate(`/dashboard/resultado-busca?q=${busca}`)
+}
 
   return (
     <section className="bg-[#f5f5f5] px-6 py-12">
@@ -169,7 +169,7 @@ function Dashboard() {
           <div className="grid grid-cols-4 gap-6">
             {produtosRecentes.map((produto) => (
               <Link
-                to={`/produtos/${produto.id}`}
+                to={`/dashboard/produtos/${produto.id}`}
                 key={produto.id}
                 className="bg-white p-4 shadow-md transition hover:-translate-y-1 hover:shadow-lg"
               >
@@ -198,7 +198,7 @@ function Dashboard() {
 
           <div className="mt-4 flex justify-end">
             <Link
-              to="/produtos"
+              to="/dashboard/produtos"
               className="text-lg font-medium text-gray-700 hover:text-[#0067A8]"
             >
               ver mais
@@ -239,7 +239,7 @@ function Dashboard() {
           <div className="grid grid-cols-4 gap-6">
             {anuncios.map((produto) => (
               <Link
-                to={`/produtos/${produto.id}`}
+                to={`/dashboard/produtos/${produto.id}`}
                 key={produto.id}
                 className="bg-white p-4 shadow-md transition hover:-translate-y-1 hover:shadow-lg"
               >
